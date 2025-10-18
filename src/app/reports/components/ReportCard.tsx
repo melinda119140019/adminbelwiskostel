@@ -1,0 +1,194 @@
+/* eslint-disable @next/next/no-img-element */
+"use client";
+
+import { Report } from "../models";
+import { Progress, StatusBroken, TypeBroken } from "../constant";
+import { Trash2, Pencil, Image } from "lucide-react";
+import { FormatDate } from "../utils/Date";
+import { CalculateProgressDuration } from "../utils/TimeProgress";
+import { useState } from "react";
+
+interface Props {
+  report: Report;
+  onEdit: (report: Report) => void;
+ onDelete: (reportId: string) => void;
+}
+
+export default function ReportCard({ report, onEdit, onDelete }: Props) {
+
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+
+  return (
+    <div className="relative group bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-lg transition">
+      <div className="space-y-1">
+        <div className="flex flex-wrap gap-x-6 gap-y-2">
+          
+          {/* Kolom 1: ID */}
+          <div className="flex flex-col gap-1">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+              No Laporan
+            </p>
+            <p className="text-sm font-semibold text-gray-900">
+              {report.report_code}
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              Tipe Report
+            </p>
+            <p className="text-sm font-semibold text-gray-900 ">
+              {TypeBroken(report.report_type).label}
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              Pelapor
+            </p>
+            <span
+              className={`text-sm font-semibold px-2 py-1 rounded-md `}
+            >
+              {report.customer_key?.username}
+            </span>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              Room
+            </p>
+            <span className="text-sm text-gray-700 font-semibold px-2 rounded-md">
+              {typeof report.customer_key !== "string" &&
+              report.customer_key?.room_key &&
+              typeof report.customer_key.room_key !== "string"
+                ? report.customer_key.room_key.code
+                : "-"}
+            </span>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              Tip Kerusakan
+            </p>
+            <span
+              className={`text-sm font-semibold px-2 py-1 rounded-md `}
+            >
+              {StatusBroken(report.broken_type).label}
+            </span>
+          </div>
+          
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              Status
+            </p>
+            <span
+              className={`text-sm font-semibold px-2 py-1 rounded-md ${Progress(
+                report.progress
+              ).className}`}
+            >
+              {Progress(report.progress).label}
+            </span>
+          </div>
+
+          {/* Kolom 7: Laporan Masuk */}
+          <div className="flex flex-col gap-1">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Laporan Masuk
+            </p>
+            <p className="text-sm font-semibold text-gray-900">
+              {FormatDate(report.createdAt, "/")}
+            </p>
+          </div>
+
+          {/* Kolom 8: Lama Pengerjaan */}
+          <div className="flex flex-col gap-1">
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Lama Pengerjaan
+            </p>
+
+            <p className="text-sm font-semibold text-gray-900">
+              {report && report.progress_end
+                ? CalculateProgressDuration(report.createdAt, report.progress_end)
+                : "-"}
+            </p>
+
+          </div>
+
+            <div className="flex flex-col gap-1">
+
+              <div className="flex flex-col gap-1">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Gambar
+                </p>
+                {report.image ? (
+                  <p
+                    onClick={() => setPreviewImage(report.image)} // ✅ trigger preview image
+                    className="flex justify-center mt-1 text-sm font-semibold text-gray-900 cursor-pointer"
+                  >
+                    <Image size={20} className="text-gray-500 hover:text-gray-700 transition" />
+                  </p>
+                ) : (
+                  <span className="text-xs text-gray-400 italic">Tidak ada</span>
+                )}
+              </div>
+            </div>
+
+
+        </div>
+
+        <div className="mt-3">
+          <p className="text-gray-500 text-sm">Pesan Customer</p>
+          <p className="text-gray-700 text-sm bg-gray-50 p-3 rounded-lg">
+            {report.broken_des
+              ? report.broken_des
+              : report.complain_des || "Belum ada balasan"}
+          </p>
+        </div>
+        <div className="mt-3">
+          <p className="text-gray-500 text-sm">Balasan Admin</p>
+          <p className="text-gray-700 text-sm bg-gray-50 p-3 rounded-lg">
+            {report.admin_note || "Belum ada balasan"}
+          </p>
+        </div>
+      </div>
+
+      {/* 🔹 Tombol muncul saat hover */}
+      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition flex gap-2">
+        <button
+          onClick={() => onEdit(report)}
+          className="p-2 bg-indigo-400 text-white rounded-lg hover:bg-indigo-500 shadow"
+        >
+          <Pencil size={16} />
+        </button>
+        <button
+          onClick={() => report._id && onDelete(report._id)}
+          className="p-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500 shadow"
+        >
+          <Trash2 size={16} />
+        </button>
+      </div>
+
+      {/* 🔹 Preview Image Modal */}
+      {previewImage && (
+        <div
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50"
+          onClick={() => setPreviewImage(null)}
+        >
+          <img
+            src={previewImage}
+            alt="Preview"
+            className="max-w-[90%] max-h-[90%] rounded-lg shadow-2xl transition-transform duration-300 scale-100 hover:scale-105"
+          />
+          <button
+            onClick={() => setPreviewImage(null)}
+            className="absolute top-6 right-6 text-white bg-black/50 hover:bg-black/70 p-2 px-3 rounded-full transition"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+    </div>
+  );
+}
