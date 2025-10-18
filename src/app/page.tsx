@@ -43,7 +43,7 @@ export default function Home() {
       {/* Gambar Hero */}
       <div className="mt-12">
         <Image
-          src="/dashboard-preview.png"
+          src="/peta.png"
           alt="Preview Dashboard"
           width={800}
           height={400}
